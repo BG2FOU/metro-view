@@ -1,0 +1,18 @@
+{
+  "type": "FeatureCollection",
+  "coordinateSystem": "GCJ-02",
+  "lineId": "MV-LB",
+  "lineColor": "#3B82F6",
+  "sampleData": true,
+  "features": [
+    {"type":"Feature","properties":{"id":"b-west","lineId":"MV-LB","lineColor":"#3B82F6","nameZh":"新城西站","nameEn":"New Town West","sequence":1,"stationType":"operational","structureType":"underground"},"geometry":{"type":"Point","coordinates":[120.0100,29.9900]}},
+    {"type":"Feature","properties":{"id":"b-garden","lineId":"MV-LB","lineColor":"#3B82F6","nameZh":"青禾站","nameEn":"Greenfield","sequence":2,"stationType":"operational","structureType":"underground"},"geometry":{"type":"Point","coordinates":[120.0170,30.0000]}},
+    {"type":"Feature","properties":{"id":"b-central","lineId":"MV-LB","lineColor":"#3B82F6","nameZh":"星河站","nameEn":"Galaxy","sequence":3,"stationType":"operational","structureType":"underground"},"geometry":{"type":"Point","coordinates":[120.0240,30.0100]}},
+    {"type":"Feature","properties":{"id":"b-tech-park","lineId":"MV-LB","lineColor":"#3B82F6","nameZh":"科创园站","nameEn":"Innovation Park","sequence":4,"stationType":"operational","structureType":"underground"},"geometry":{"type":"Point","coordinates":[120.0310,30.0200]}},
+    {"type":"Feature","properties":{"id":"b-east","lineId":"MV-LB","lineColor":"#3B82F6","nameZh":"云谷东站","nameEn":"Cloud Valley East","sequence":5,"stationType":"operational","structureType":"underground"},"geometry":{"type":"Point","coordinates":[120.0380,30.0300]}},
+    {"type":"Feature","properties":{"id":"LB-S01-P01","segmentId":"LB-S01","sequence":1,"partNo":1,"partCount":1,"fromId":"b-west","toId":"b-garden","structureType":"underground","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0100,29.9900],[120.0135,29.9950],[120.0170,30.0000]]}},
+    {"type":"Feature","properties":{"id":"LB-S02-P01","segmentId":"LB-S02","sequence":2,"partNo":1,"partCount":1,"fromId":"b-garden","toId":"b-central","structureType":"underground","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0170,30.0000],[120.0205,30.0050],[120.0240,30.0100]]}},
+    {"type":"Feature","properties":{"id":"LB-S03-P01","segmentId":"LB-S03","sequence":3,"partNo":1,"partCount":1,"fromId":"b-central","toId":"b-tech-park","structureType":"underground","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0240,30.0100],[120.0275,30.0150],[120.0310,30.0200]]}},
+    {"type":"Feature","properties":{"id":"LB-S04-P01","segmentId":"LB-S04","sequence":4,"partNo":1,"partCount":1,"fromId":"b-tech-park","toId":"b-east","structureType":"underground","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0310,30.0200],[120.0345,30.0250],[120.0380,30.0300]]}}
+  ]
+}

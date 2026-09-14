@@ -1,0 +1,20 @@
+{
+  "type": "FeatureCollection",
+  "coordinateSystem": "GCJ-02",
+  "lineId": "MV-LA",
+  "lineColor": "#E54B4B",
+  "sampleData": true,
+  "features": [
+    {"type":"Feature","properties":{"id":"a-terminal","lineId":"MV-LA","lineColor":"#E54B4B","nameZh":"晨曦站","nameEn":"Dawn","sequence":1,"stationType":"operational","structureType":"elevated"},"geometry":{"type":"Point","coordinates":[120.0000,30.0000]}},
+    {"type":"Feature","properties":{"id":"a-museum-reserved","lineId":"MV-LA","lineColor":"#E54B4B","nameZh":"博览站（预留）","nameEn":"Museum (Reserved)","sequence":2,"stationType":"reserved","structureType":"elevated"},"geometry":{"type":"Point","coordinates":[120.0120,30.0060]}},
+    {"type":"Feature","properties":{"id":"a-central","lineId":"MV-LA","lineColor":"#E54B4B","nameZh":"中央站","nameEn":"Central","sequence":3,"stationType":"operational","structureType":"underground"},"geometry":{"type":"Point","coordinates":[120.0240,30.0100]}},
+    {"type":"Feature","properties":{"id":"a-riverside","lineId":"MV-LA","lineColor":"#E54B4B","nameZh":"滨河站","nameEn":"Riverside","sequence":4,"stationType":"operational","structureType":"underground"},"geometry":{"type":"Point","coordinates":[120.0360,30.0060]}},
+    {"type":"Feature","properties":{"id":"a-harbor","lineId":"MV-LA","lineColor":"#E54B4B","nameZh":"远航站","nameEn":"Voyage","sequence":5,"stationType":"operational","structureType":"elevated"},"geometry":{"type":"Point","coordinates":[120.0480,30.0000]}},
+    {"type":"Feature","properties":{"id":"a-depot","lineId":"MV-LA","lineColor":"#E54B4B","nameZh":"示例车辆段","nameEn":"Sample Depot","sequence":6,"stationType":"depot","structureType":"elevated"},"geometry":{"type":"Point","coordinates":[119.9940,29.9920]}},
+    {"type":"Feature","properties":{"id":"LA-S01-P01","segmentId":"LA-S01","sequence":1,"partNo":1,"partCount":1,"fromId":"a-terminal","toId":"a-museum-reserved","structureType":"elevated","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0000,30.0000],[120.0060,30.0035],[120.0120,30.0060]]}},
+    {"type":"Feature","properties":{"id":"LA-S02-P01","segmentId":"LA-S02","sequence":2,"partNo":1,"partCount":1,"fromId":"a-museum-reserved","toId":"a-central","structureType":"underground","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0120,30.0060],[120.0180,30.0085],[120.0240,30.0100]]}},
+    {"type":"Feature","properties":{"id":"LA-S03-P01","segmentId":"LA-S03","sequence":3,"partNo":1,"partCount":1,"fromId":"a-central","toId":"a-riverside","structureType":"underground","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0240,30.0100],[120.0300,30.0090],[120.0360,30.0060]]}},
+    {"type":"Feature","properties":{"id":"LA-S04-P01","segmentId":"LA-S04","sequence":4,"partNo":1,"partCount":1,"fromId":"a-riverside","toId":"a-harbor","structureType":"elevated","segmentType":"mainline"},"geometry":{"type":"LineString","coordinates":[[120.0360,30.0060],[120.0420,30.0030],[120.0480,30.0000]]}},
+    {"type":"Feature","properties":{"id":"LA-D01-P01","segmentId":"LA-D01","sequence":5,"partNo":1,"partCount":1,"fromId":"a-terminal","toId":"a-depot","structureType":"elevated","segmentType":"depot_line"},"geometry":{"type":"LineString","coordinates":[[120.0000,30.0000],[119.9970,29.9960],[119.9940,29.9920]]}}
+  ]
+}

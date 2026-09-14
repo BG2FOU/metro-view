@@ -1,0 +1,36 @@
+{
+    "name":  "metro-view",
+    "version":  "0.1.0",
+    "private":  false,
+    "type":  "module",
+    "scripts":  {
+                    "dev":  "vite",
+                    "typecheck":  "tsc --noEmit",
+                    "prepare:runtime-timetables":  "node --experimental-strip-types scripts/prepare-runtime-timetables.ts",
+                    "check:runtime-timetables":  "node --experimental-strip-types scripts/prepare-runtime-timetables.ts --check",
+                    "test":  "vitest run",
+                    "build":  "npm run check:runtime-timetables \u0026\u0026 npm run typecheck \u0026\u0026 vite build",
+                    "test:e2e":  "node --experimental-strip-types scripts/run-e2e.ts",
+                    "test:preview":  "node --experimental-strip-types scripts/run-e2e.ts --preview",
+                    "preview":  "vite preview",
+                    "deploy:cloudflare":  "wrangler deploy",
+                    "deploy:cloudflare:dry-run":  "wrangler deploy --dry-run"
+                },
+    "engines":  {
+                    "node":  "\u003e=22.10"
+                },
+    "devDependencies":  {
+                            "@playwright/test":  "^1.62.1",
+                            "@types/geojson":  "^7946.0.16",
+                            "@types/node":  "^24.10.1",
+                            "jsdom":  "^29.1.1",
+                            "typescript":  "^5.9.3",
+                            "vite":  "^8.2.0",
+                            "vitest":  "^4.1.10",
+                            "wrangler":  "^4.119.0"
+                        },
+    "dependencies":  {
+                         "@amap/amap-jsapi-loader":  "^1.0.1",
+                         "flatpickr":  "^4.6.13"
+                     }
+}

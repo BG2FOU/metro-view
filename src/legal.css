@@ -1,0 +1,23 @@
+footer {
+  justify-content: space-between;
+}
+
+footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+footer .legal {
+  color: #bfc8d0;
+}
+
+footer .legal a {
+  color: #d9e0e5;
+}
+
+@media (max-width: 820px) {
+  footer {
+    flex-direction: column;
+  }
+}

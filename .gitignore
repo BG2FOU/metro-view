@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+__pycache__/
+*.py[cod]
+/.wrangler/
+/build/scratch/
+/debug.log
+
+# Local AMap credentials; never commit plaintext keys or security codes.
+amap-api-key.txt
+.env
+.env.local
+.env.*.local
+!.env.example
