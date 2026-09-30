@@ -1,7 +1,7 @@
 import flatpickrModule from "flatpickr";
 import { Mandarin } from "flatpickr/dist/l10n/zh.js";
 import { serviceDaySecondsAt } from "../domain/timetable.ts";
-import type { ScheduleGeneration } from "../domain/schedule-selection.ts";
+import type { LineBScheduleId, ScheduleGeneration } from "../domain/schedule-selection.ts";
 import { SimulationClock, type ClockRate } from "../services/simulation-clock.ts";
 import { formatServiceDateTimeLocal, parseServiceDateTimeLocal } from "../services/service-time.ts";
 import { isServiceWeekend, servicePeriodsForDate, type SimulationPeriodKind } from "./simulation-periods.ts";
@@ -35,7 +35,7 @@ export function mountSimulationControls(
   container: HTMLElement,
   clock: SimulationClock,
   onChange: () => void,
-  scheduleGenerationAt: (now: Date) => ScheduleGeneration = () => "legacy",
+  scheduleGenerationAt: (now: Date) => ScheduleGeneration | LineBScheduleId = () => "legacy",
 ): () => void {
   container.innerHTML = `
     <section class="simulation-picker" aria-labelledby="simulation-picker-label">
@@ -88,7 +88,7 @@ export function mountSimulationControls(
   let draggingTimeline = false;
   let lastRunningRate: ClockRate = 1;
 
-  const renderPeriods = (dateKey: string, generation: ScheduleGeneration): void => {
+  const renderPeriods = (dateKey: string, generation: ScheduleGeneration | LineBScheduleId): void => {
     const periodKey = `${dateKey}/${generation}`;
     if (renderedPeriodKey === periodKey) return;
     renderedPeriodKey = periodKey;

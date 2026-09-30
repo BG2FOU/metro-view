@@ -2,6 +2,7 @@ import "./styles.css";
 import "flatpickr/dist/flatpickr.min.css";
 import "./legal.css";
 import "./improvements.css";
+import "./pis-screen.css";
 import metroIconUrl from "./assets/icons/metro.svg";
 import stationIconUrl from "./assets/icons/station.svg";
 import lineARaw from "./data/line-a.geojson?raw";
@@ -13,12 +14,12 @@ import { parseLineData } from "./domain/map-data.ts";
 import { calculateStationArrivals } from "./domain/station-arrivals.ts";
 import {
   SCHEDULE_MODE_STORAGE_KEY,
+  isScheduleSelection,
   isScheduleSelectionMode,
   resolveActiveSchedules,
-  resolveScheduleGeneration,
   nonOperatingStationIds,
   type RuntimeScheduleId,
-  type ScheduleSelectionMode,
+  type ScheduleSelection,
 } from "./domain/schedule-selection.ts";
 import { serviceDaySecondsAt, type DomainTimetable } from "./domain/timetable.ts";
 import { calculateTrainStates } from "./domain/train-state.ts";
@@ -30,17 +31,20 @@ import { loadAmap } from "./services/amap.ts";
 import { readClock } from "./services/clock.ts";
 import { SimulationClock } from "./services/simulation-clock.ts";
 import { mountDialogControl } from "./ui/dialog-control.ts";
-import { mountMapControls, type TrainViewMode } from "./ui/map-controls.ts";
+import { mountDetailDialog } from "./ui/detail-dialog.ts";
+import { mountMapControls, type StatusPanelMode } from "./ui/map-controls.ts";
 import { mountScheduleControls } from "./ui/schedule-controls.ts";
 import { mountSimulationControls } from "./ui/simulation-controls.ts";
 import { renderStatusPanel } from "./ui/status-panel.ts";
-import { renderStationDetail } from "./ui/station-detail.ts";
-import { renderTrainDetail } from "./ui/train-detail.ts";
-import { infoWindowFontSize } from "./ui/info-window-scale.ts";
+import { renderPisStation, renderPisTrain } from "./ui/pis-screen.ts";
+import { createNetworkMap, isNetworkTrainDisplayable } from "./ui/network-map.ts";
+import type { Point } from "./ui/network-map-projection.ts";
 
 const root = document.querySelector<HTMLElement>("#app");
 if (!root) throw new Error("Missing #app root");
-root.innerHTML = `<header><div class="brand"><p class="eyebrow">METRO VIEW · 示例 A 线 / B 线</p><h1>Metro View 轨道交通运行图演示</h1></div><nav class="header-actions" aria-label="显示与时间控制"><button type="button" data-dialog-trigger="schedule-dialog" aria-haspopup="dialog" aria-controls="schedule-dialog">运行图</button><button type="button" data-dialog-trigger="map-settings-dialog" aria-haspopup="dialog" aria-controls="map-settings-dialog">地图设置</button><button type="button" data-dialog-trigger="simulation-dialog" aria-haspopup="dialog" aria-controls="simulation-dialog">时间控制</button></nav><div class="disclaimer"><b>模拟位置</b><span>非 GPS 实时位置 · 非运营方实时数据</span><small id="clock-source">正在校时</small></div></header><dialog id="schedule-dialog" class="control-dialog schedule-dialog" aria-labelledby="schedule-title"><section class="dialog-card"><div class="dialog-heading"><h2 id="schedule-title">运行图切换</h2><button type="button" data-close-dialog aria-label="关闭运行图切换">×</button></div><div id="schedule-controls" class="schedule-controls" aria-label="运行图切换设置"></div></section></dialog><dialog id="map-settings-dialog" class="control-dialog map-dialog" aria-labelledby="map-settings-title"><section class="dialog-card"><div class="dialog-heading"><h2 id="map-settings-title">地图与列车显示</h2><button type="button" data-close-dialog aria-label="关闭地图设置">×</button></div><div id="map-controls" class="map-toolbar" aria-label="地图显示设置"><p class="dialog-loading">正在加载地图设置…</p></div></section></dialog><dialog id="simulation-dialog" class="control-dialog simulation-dialog" aria-labelledby="simulation-title"><section class="dialog-card"><div class="dialog-heading"><h2 id="simulation-title">时间与模拟控制</h2><button type="button" data-close-dialog aria-label="关闭时间控制">×</button></div><div id="simulation" class="controls" aria-label="模拟控制"></div></section></dialog><main class="layout"><section class="map-card"><div id="map" aria-label="示例 A 线与 B 线地图"><div class="map-loading">正在加载地图…</div></div><div class="site-watermark" aria-hidden="true">© BG2FOU</div><details class="route-legend-module"><summary>图例</summary><div class="route-legend" aria-label="图例"><span><i class="line-a" aria-hidden="true"></i>示例 A 线</span><span><i class="line-b" aria-hidden="true"></i>示例 B 线</span><span><i class="elevated" aria-hidden="true"></i>高架段</span><span><i class="underground" aria-hidden="true"></i>隧道段</span><span><img src="${stationIconUrl}" alt="" aria-hidden="true">车站</span><span><img src="${metroIconUrl}" alt="" aria-hidden="true">列车</span></div></details><div id="map-error" class="map-error" hidden></div></section><aside id="side-dock" class="side-dock" hidden><section id="status-panel" class="panel"><h2>列车状态</h2><div id="status" class="states" aria-live="polite"></div></section></aside></main><footer><span class="footer-version">合成线路数据 · 示例运行图正在加载 · Asia/Shanghai</span><p class="legal">COPYRIGHT © <a href="https://github.com/BG2FOU" target="_blank" rel="noopener noreferrer"><strong>BG2FOU</strong></a></p></footer>`;
+root.innerHTML = `<header><div class="brand"><p class="eyebrow">METRO VIEW · 示例 A 线 / B 线</p><h1>Metro View 轨道交通运行图演示</h1></div><nav class="header-actions" aria-label="显示与时间控制"><button type="button" data-dialog-trigger="schedule-dialog" aria-haspopup="dialog" aria-controls="schedule-dialog">运行图</button><button type="button" data-dialog-trigger="map-settings-dialog" aria-haspopup="dialog" aria-controls="map-settings-dialog">地图设置</button><button type="button" data-dialog-trigger="simulation-dialog" aria-haspopup="dialog" aria-controls="simulation-dialog">时间控制</button></nav><div class="disclaimer"><b>模拟位置</b><span>非 GPS 实时位置 · 非运营方实时数据</span><small id="clock-source">正在校时</small></div></header><dialog id="schedule-dialog" class="control-dialog schedule-dialog" aria-labelledby="schedule-title"><section class="dialog-card"><div class="dialog-heading"><h2 id="schedule-title">运行图切换</h2><button type="button" data-close-dialog aria-label="关闭运行图切换">×</button></div><div id="schedule-controls" class="schedule-controls" aria-label="运行图切换设置"></div></section></dialog><dialog id="map-settings-dialog" class="control-dialog map-dialog" aria-labelledby="map-settings-title"><section class="dialog-card"><div class="dialog-heading"><h2 id="map-settings-title">地图与列车显示</h2><button type="button" data-close-dialog aria-label="关闭地图设置">×</button></div><div id="map-controls" class="map-toolbar" aria-label="地图显示设置"><p class="dialog-loading">正在加载地图设置…</p></div></section></dialog><dialog id="simulation-dialog" class="control-dialog simulation-dialog" aria-labelledby="simulation-title"><section class="dialog-card"><div class="dialog-heading"><h2 id="simulation-title">时间与模拟控制</h2><button type="button" data-close-dialog aria-label="关闭时间控制">×</button></div><div id="simulation" class="controls" aria-label="模拟控制"></div></section></dialog><main class="layout"><section class="map-card"><div class="map-stage"><div id="map" aria-label="示例 A 线与 B 线实际地图"><div class="map-loading">正在加载地图…</div></div><div id="network-map" aria-label="示例 A/B 线线网拓扑图" hidden></div></div><div class="site-watermark" aria-hidden="true">© BG2FOU</div><details class="route-legend-module"><summary>图例</summary><div class="route-legend" aria-label="图例"><span><i class="line-a" aria-hidden="true"></i>A 线</span><span><i class="line-b" aria-hidden="true"></i>B 线</span><span><i class="elevated" aria-hidden="true"></i>高架段</span><span><i class="underground" aria-hidden="true"></i>隧道段</span><span><img src="${stationIconUrl}" alt="" aria-hidden="true">车站</span><span><img src="${metroIconUrl}" alt="" aria-hidden="true">列车</span></div></details><div id="map-error" class="map-error" hidden></div></section><aside id="side-dock" class="side-dock" hidden><section id="status-panel" class="panel"><h2>列车状态</h2><div id="status" class="states" aria-live="polite"></div></section></aside></main><footer><span class="footer-version">合成线路数据 A/B · 运行图正在加载 · Asia/Shanghai</span><p class="legal">COPYRIGHT © <a href="https://github.com/BG2FOU" target="_blank" rel="noopener noreferrer"><strong>BG2FOU</strong></a></p></footer>`;
+
+root.insertAdjacentHTML("beforeend", `<dialog id="detail-dialog" class="detail-dialog" aria-labelledby="detail-dialog-title"><div class="detail-dialog-frame"><div class="detail-dialog-heading"><span id="detail-dialog-title">运行信息</span><button type="button" class="detail-dialog-close" data-close-detail aria-label="关闭信息">×</button></div><div class="detail-dialog-content"></div></div></dialog>`);
 
 const dialogDisposers = [
   ["schedule-dialog", "schedule-dialog"],
@@ -54,6 +58,10 @@ const dialogDisposers = [
 const lineA = parseLineData(JSON.parse(lineARaw), "MV-LA");
 const lineB = parseLineData(JSON.parse(lineBRaw), "MV-LB");
 const allStations = [...lineA.stations, ...lineB.stations];
+const depotStationIds = new Set(allStations.filter((station) => station.stationType === "depot").map((station) => station.id));
+const mapElement = document.querySelector<HTMLElement>("#map")!;
+const networkElement = document.querySelector<HTMLElement>("#network-map")!;
+const mapError = document.querySelector<HTMLElement>("#map-error")!;
 const lineARoute = buildRoute(lineA);
 const lineBRoute = buildRoute(lineB);
 const emptyTimetable: DomainTimetable = { trips: [], circulations: [], conventions: { serviceDayRollover: "03:00:00" } };
@@ -61,6 +69,69 @@ const timetableCache = new Map<RuntimeScheduleId, DomainTimetable>([["LA-BASE", 
 const timetableLoads = new Map<RuntimeScheduleId, Promise<DomainTimetable>>();
 let lineATimetable = timetableCache.get("LA-BASE")!;
 let lineBTimetable = emptyTimetable;
+let displayMode: "map" | "network" = "map";
+let mapUnavailable = false;
+let selectedTrainKey: string | undefined;
+let selectedStationId: string | undefined;
+let latestNow = new Date();
+let latestNonOperating: ReadonlySet<string> = new Set();
+let latestScheduleIds: { lineA: string; lineB: string } = { lineA: "LA-BASE", lineB: "LB-WEEKDAY-BASE" };
+const detailDialog = mountDetailDialog(document.querySelector<HTMLDialogElement>("#detail-dialog")!, () => {
+  selectedTrainKey = undefined;
+  selectedStationId = undefined;
+});
+
+const trainKey = (state: ReturnType<typeof calculateTrainStates>[number]): string => `${state.lineId ?? "MV-LA"}:${state.vehicleId}`;
+const stationTimetable = (station: (typeof allStations)[number]): DomainTimetable => station.lineId === "MV-LB" ? lineBTimetable : lineATimetable;
+const pisMode = () => displayMode === "map" ? "A" : "B";
+const stationScreen = (station: (typeof allStations)[number]): string => renderPisStation(station, calculateStationArrivals(latestDaySeconds, station.id, stationTimetable(station)), allStations, pisMode(), station.lineId === "MV-LB" ? latestScheduleIds.lineB : latestScheduleIds.lineA, latestNow);
+const trainScreen = (state: ReturnType<typeof calculateTrainStates>[number]): string => renderPisTrain(state, state.lineId === "MV-LB" ? lineB : lineA, state.lineId === "MV-LB" ? lineBTimetable : lineATimetable, allStations, pisMode(), latestDaySeconds, latestNonOperating);
+
+function showTrainDetail(state: ReturnType<typeof calculateTrainStates>[number]): void {
+  selectedTrainKey = trainKey(state);
+  selectedStationId = undefined;
+  detailDialog.show(trainScreen(state), "train");
+}
+
+function showNetworkTrain(state: ReturnType<typeof calculateTrainStates>[number], _anchor: Point): void {
+  showTrainDetail(state);
+}
+
+function showNetworkStation(station: (typeof allStations)[number], _anchor: Point): void {
+  selectedTrainKey = undefined;
+  selectedStationId = station.id;
+  detailDialog.show(stationScreen(station), "station");
+}
+
+const networkMap = createNetworkMap(networkElement, [lineA, lineB], {
+  routes: new Map([["MV-LA", lineARoute], ["MV-LB", lineBRoute]]),
+  onTrainSelect: showNetworkTrain,
+  onStationSelect: showNetworkStation,
+});
+
+const setDisplayMode = (mode: "map" | "network"): void => {
+  detailDialog.close();
+  displayMode = mode;
+  const scheduleTrigger = document.querySelector<HTMLButtonElement>('[data-dialog-trigger="schedule-dialog"]')!;
+  scheduleTrigger.hidden = mode === "network";
+  if (mode === "network") {
+    const scheduleDialog = document.querySelector<HTMLDialogElement>("#schedule-dialog")!;
+    if (scheduleDialog.open) scheduleDialog.close();
+    if (scheduleMode !== "auto") {
+      scheduleMode = "auto";
+      saveScheduleSelection(scheduleMode);
+      update();
+    }
+  }
+  document.querySelector<HTMLElement>(".footer-version")!.hidden = mode === "network";
+  renderSidebar();
+  mapElement.hidden = mode !== "map";
+  networkMap.setVisible(mode === "network");
+  const geographicLegend = document.querySelector<HTMLElement>(".route-legend-module");
+  if (geographicLegend) geographicLegend.hidden = mode === "network";
+  mapError.hidden = mode === "network" || !mapUnavailable;
+  document.querySelectorAll<HTMLButtonElement>("[data-view-mode]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.viewMode === mode)));
+};
 const runtime = readRuntimeConfig({
   ...import.meta.env,
   ...(!import.meta.env.PROD && __METRO_VIEW_LOCAL_AMAP_KEY__ ? { VITE_AMAP_API_KEY: __METRO_VIEW_LOCAL_AMAP_KEY__ } : {}),
@@ -68,23 +139,43 @@ const runtime = readRuntimeConfig({
 });
 let clockOffset = 0;
 const clock = new SimulationClock(() => Date.now() + clockOffset);
-const readScheduleMode = (): ScheduleSelectionMode => {
+const readScheduleSelection = (): ScheduleSelection => {
   try {
     const value = window.localStorage.getItem(SCHEDULE_MODE_STORAGE_KEY);
-    return isScheduleSelectionMode(value) ? value : "auto";
+    if (isScheduleSelectionMode(value)) return value;
+    if (value) {
+      const parsed: unknown = JSON.parse(value);
+      if (isScheduleSelection(parsed)) return parsed;
+    }
+    return "auto";
   } catch {
     return "auto";
   }
 };
-const saveScheduleMode = (mode: ScheduleSelectionMode): void => {
-  try { window.localStorage.setItem(SCHEDULE_MODE_STORAGE_KEY, mode); } catch { /* Storage can be unavailable in privacy modes. */ }
+const saveScheduleSelection = (selection: ScheduleSelection): void => {
+  try {
+    window.localStorage.setItem(SCHEDULE_MODE_STORAGE_KEY, typeof selection === "object" ? JSON.stringify(selection) : selection);
+  } catch { /* Storage can be unavailable in privacy modes. */ }
 };
-let scheduleMode = readScheduleMode();
+let scheduleMode = readScheduleSelection();
 const status = document.querySelector<HTMLElement>("#status")!;
 const sideDock = document.querySelector<HTMLElement>("#side-dock")!;
 const layout = document.querySelector<HTMLElement>(".layout")!;
-let trainViewMode: TrainViewMode = "popup";
 let latestStates: ReturnType<typeof calculateTrainStates> = [];
+function renderSidebar(): void {
+  renderStatusPanel(status, displayMode === "network" ? latestStates.filter((state) => isNetworkTrainDisplayable(state, depotStationIds)) : latestStates, allStations);
+}
+const setStatusPanelMode = (mode: StatusPanelMode): void => {
+  const visible = mode === "visible";
+  sideDock.hidden = !visible;
+  layout.classList.toggle("sidebar-open", visible);
+};
+const onStatusClick = (event: MouseEvent): void => {
+  const target = event.target instanceof Element ? event.target.closest<HTMLElement>("[data-train-key]") : null;
+  const state = latestStates.find((candidate) => trainKey(candidate) === target?.dataset.trainKey);
+  if (state) showTrainDetail(state);
+};
+status.addEventListener("click", onStatusClick);
 let latestDaySeconds = 0;
 let updateMap: ((states: ReturnType<typeof calculateTrainStates>) => void) | undefined;
 let refreshSelectedTrain: ((states: ReturnType<typeof calculateTrainStates>) => void) | undefined;
@@ -94,10 +185,13 @@ async function loadRuntimeTimetable(scheduleId: RuntimeScheduleId): Promise<Doma
   switch (scheduleId) {
     case "LA-BASE": return LA_BASE_TIMETABLE as unknown as DomainTimetable;
     case "LA-NEXT": return (await import("./data/runtime/la-next.json")).default as unknown as DomainTimetable;
+    case "LA-EXPANDED": return (await import("./data/runtime/la-expanded.json")).default as unknown as DomainTimetable;
+    case "LA-SPECIAL": return (await import("./data/runtime/la-special.json")).default as unknown as DomainTimetable;
     case "LB-WEEKDAY-BASE": return (await import("./data/runtime/lb-weekday-base.json")).default as unknown as DomainTimetable;
     case "LB-WEEKDAY-NEXT": return (await import("./data/runtime/lb-weekday-next.json")).default as unknown as DomainTimetable;
     case "LB-WEEKEND-BASE": return (await import("./data/runtime/lb-weekend-base.json")).default as unknown as DomainTimetable;
     case "LB-WEEKEND-NEXT": return (await import("./data/runtime/lb-weekend-next.json")).default as unknown as DomainTimetable;
+    case "LB-SPECIAL": return (await import("./data/runtime/lb-special.json")).default as unknown as DomainTimetable;
   }
 }
 
@@ -124,7 +218,7 @@ const scheduleControls = mountScheduleControls(
   scheduleMode,
   (mode) => {
     scheduleMode = mode;
-    saveScheduleMode(mode);
+    saveScheduleSelection(mode);
     update();
   },
 );
@@ -138,24 +232,40 @@ function update(): void {
   ensureTimetable(schedules.lineA);
   ensureTimetable(schedules.lineB);
   scheduleControls.update(scheduleMode, schedules);
-  updateStationServiceStatus?.(nonOperatingStationIds(schedules));
+  const nonOperating = nonOperatingStationIds(schedules);
+  latestNow = now;
+  latestScheduleIds = schedules;
+  latestNonOperating = nonOperating;
+  updateStationServiceStatus?.(nonOperating);
+  networkMap.setNonOperatingStations(nonOperating);
   const footerVersion = document.querySelector<HTMLElement>(".footer-version");
-  if (footerVersion) footerVersion.textContent = `合成线路数据 · 运行图 ${schedules.lineA}/${schedules.lineB} · Asia/Shanghai`;
+  if (footerVersion) footerVersion.textContent = `合成线路数据 A/B · 运行图 ${schedules.lineA}/${schedules.lineB} · Asia/Shanghai`;
   latestDaySeconds = daySeconds;
   latestStates = [
     ...calculateTrainStates(daySeconds, lineATimetable, lineARoute, "MV-LA", "#E54B4B"),
     ...calculateTrainStates(daySeconds, lineBTimetable, lineBRoute, "MV-LB", "#3B82F6"),
   ];
-  renderStatusPanel(status, latestStates, allStations);
+  renderSidebar();
+  networkMap.update(latestStates);
   updateMap?.(latestStates);
   refreshSelectedTrain?.(latestStates);
+  if (displayMode === "network" && detailDialog.isOpen()) {
+    if (selectedStationId) {
+      const station = allStations.find((candidate) => candidate.id === selectedStationId);
+      if (station) detailDialog.refresh(stationScreen(station));
+    } else if (selectedTrainKey) {
+      const state = latestStates.find((candidate) => trainKey(candidate) === selectedTrainKey);
+      if (state) detailDialog.refresh(trainScreen(state));
+      else detailDialog.close();
+    }
+  }
 }
 
 const destroySimulationControls = mountSimulationControls(
   document.querySelector<HTMLElement>("#simulation")!,
   clock,
   update,
-  (now) => resolveScheduleGeneration(scheduleMode, now),
+  (now) => resolveActiveSchedules(scheduleMode, now).lineB,
 );
 update();
 const timer = window.setInterval(update, 1_000);
@@ -172,7 +282,6 @@ const syncTimer = window.setInterval(() => void synchronizeClock(), 300_000);
 const onVisibility = () => { if (document.visibilityState === "visible") void synchronizeClock(); };
 document.addEventListener("visibilitychange", onVisibility);
 
-const mapError = document.querySelector<HTMLElement>("#map-error")!;
 const describeError = (error: unknown): string => {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
@@ -180,36 +289,21 @@ const describeError = (error: unknown): string => {
   return "未知错误";
 };
 loadAmap(runtime).then((api) => {
-  const mapElement = document.querySelector<HTMLElement>("#map")!;
-  const map = new api.Map(mapElement, { zoom: 11, center: [120.024, 30.01], viewMode: "2D", resizeEnable: true });
-  const syncInfoWindowScale = () => { const zoom = map.getZoom?.() ?? 11; mapElement.dataset.mapZoom = String(zoom); mapElement.style.setProperty("--map-info-font-size", `${infoWindowFontSize(zoom).toFixed(2)}px`); };
+  const map = new api.Map(mapElement, { zoom: 11, center: [118.19, 24.6], viewMode: "2D", resizeEnable: true });
+  const syncMapZoom = () => { mapElement.dataset.mapZoom = String(map.getZoom?.() ?? 11); };
   const setTestZoom = (event: Event) => { if (!import.meta.env.PROD && event instanceof CustomEvent && typeof event.detail === "number") map.setZoom?.(event.detail); };
-  map.on?.("zoomchange", syncInfoWindowScale);
+  map.on?.("zoomchange", syncMapZoom);
   if (!import.meta.env.PROD) mapElement.addEventListener("metro-view:set-test-zoom", setTestZoom);
-  syncInfoWindowScale();
+  syncMapZoom();
   const baseLayers = createBaseLayerController(api, map);
   const routeLayers = [createRouteLayer(api, map, lineA), createRouteLayer(api, map, lineB)];
-  const infoWindow = new api.InfoWindow({ closeWhenClickMap: true, offset: [0, -18] });
-  const trainKey = (state: (typeof latestStates)[number]): string => `${state.lineId ?? "MV-LA"}:${state.vehicleId}`;
-  const stationTimetable = (station: (typeof allStations)[number]): DomainTimetable => station.lineId === "MV-LB" ? lineBTimetable : lineATimetable;
-  let selectedTrainKey: string | undefined;
-  let selectedStationId: string | undefined;
   const showTrain = (state: (typeof latestStates)[number]): void => {
-    selectedTrainKey = trainKey(state);
-    selectedStationId = undefined;
-    if (trainViewMode === "sidebar") {
-      document.querySelector<HTMLElement>(`[data-train-key="${trainKey(state)}"]`)?.focus();
-      return;
-    }
-    if (!state.position) return;
-    infoWindow.setContent(renderTrainDetail(state, allStations));
-    infoWindow.open(map, state.position);
+    if (state.position) showTrainDetail(state);
   };
   const showStation = (station: (typeof allStations)[number]): void => {
     selectedTrainKey = undefined;
     selectedStationId = station.id;
-    infoWindow.setContent(renderStationDetail(station, calculateStationArrivals(latestDaySeconds, station.id, stationTimetable(station)), allStations));
-    infoWindow.open(map, station.coordinates);
+    detailDialog.show(stationScreen(station), "station");
   };
   const showTestStation = (event: Event): void => {
     if (import.meta.env.PROD || !(event instanceof CustomEvent) || typeof event.detail !== "string") return;
@@ -220,41 +314,37 @@ loadAmap(runtime).then((api) => {
   const stationLayers = [createStationLayer(api, map, lineA, showStation), createStationLayer(api, map, lineB, showStation)];
   updateStationServiceStatus = (stationIds) => stationLayers.forEach((layer) => layer.setNonOperatingStations(stationIds));
   const trains = createTrainLayer(api, map, showTrain, allStations);
-  const setTrainViewMode = (mode: TrainViewMode): void => {
-    trainViewMode = mode;
-    const sidebar = mode === "sidebar";
-    sideDock.hidden = !sidebar;
-    layout.classList.toggle("sidebar-open", sidebar);
-    if (sidebar) infoWindow.close();
-  };
   const setLineVisible = (lineId: "MV-LA" | "MV-LB", visible: boolean): void => {
     const index = lineId === "MV-LA" ? 0 : 1;
     routeLayers[index]?.setVisible(visible);
     stationLayers[index]?.setVisible(visible);
     trains.setLineVisible(lineId, visible);
+    networkMap.setLineVisible(lineId, visible);
   };
-  const destroyMapControls = mountMapControls(document.querySelector<HTMLElement>("#map-controls")!, baseLayers, setTrainViewMode, setLineVisible);
+  const destroyMapControls = mountMapControls(document.querySelector<HTMLElement>("#map-controls")!, baseLayers, setStatusPanelMode, setLineVisible, setDisplayMode);
   updateMap = (states) => trains.update(states);
   refreshSelectedTrain = (states) => {
+    if (!detailDialog.isOpen() || displayMode !== "map") return;
     if (selectedStationId) {
       const station = allStations.find((candidate) => candidate.id === selectedStationId);
-      if (station) infoWindow.setContent(renderStationDetail(station, calculateStationArrivals(latestDaySeconds, station.id, stationTimetable(station)), allStations));
+      if (station) detailDialog.refresh(stationScreen(station));
       return;
     }
-    if (trainViewMode !== "popup" || !selectedTrainKey) return;
+    if (!selectedTrainKey) return;
     const state = states.find((candidate) => trainKey(candidate) === selectedTrainKey);
-    if (state?.position) infoWindow.setContent(renderTrainDetail(state, allStations));
-    else { selectedTrainKey = undefined; infoWindow.close(); }
+    if (state?.position) detailDialog.refresh(trainScreen(state));
+    else detailDialog.close();
   };
   update();
   map.setFitView(stationLayers.flatMap((layer) => [...layer.overlays]));
   document.querySelector<HTMLElement>(".map-loading")?.remove();
-  window.addEventListener("pagehide", () => { updateStationServiceStatus = undefined; destroyMapControls(); infoWindow.close(); trains.destroy(); stationLayers.forEach((layer) => layer.destroy()); routeLayers.forEach((destroy) => destroy()); map.off?.("zoomchange", syncInfoWindowScale); mapElement.removeEventListener("metro-view:set-test-zoom", setTestZoom); mapElement.removeEventListener("metro-view:show-station", showTestStation); map.destroy(); }, { once: true });
+  window.addEventListener("pagehide", () => { updateStationServiceStatus = undefined; destroyMapControls(); trains.destroy(); stationLayers.forEach((layer) => layer.destroy()); routeLayers.forEach((destroy) => destroy()); map.off?.("zoomchange", syncMapZoom); mapElement.removeEventListener("metro-view:set-test-zoom", setTestZoom); mapElement.removeEventListener("metro-view:show-station", showTestStation); networkMap.destroy(); map.destroy(); }, { once: true });
 }).catch((error: unknown) => {
+  mapUnavailable = true;
   document.querySelector<HTMLElement>(".map-loading")?.remove();
   const mapControls = document.querySelector<HTMLElement>("#map-controls");
-  if (mapControls) mapControls.innerHTML = `<p class="dialog-error">地图暂不可用，无法调整底图与列车显示。</p>`;
-  mapError.hidden = false;
+  if (mapControls) mountMapControls(mapControls, undefined, setStatusPanelMode, (lineId, visible) => networkMap.setLineVisible(lineId, visible), setDisplayMode);
+  mapError.hidden = displayMode === "network";
   mapError.textContent = `地图暂不可用：${describeError(error)}。时间模拟和列车推演仍可使用。`;
 });
 
@@ -262,6 +352,8 @@ window.addEventListener("pagehide", () => {
   window.clearInterval(timer);
   window.clearInterval(syncTimer);
   document.removeEventListener("visibilitychange", onVisibility);
+  status.removeEventListener("click", onStatusClick);
+  detailDialog.destroy();
   dialogDisposers.forEach((dispose) => dispose());
   scheduleControls.destroy();
   destroySimulationControls();

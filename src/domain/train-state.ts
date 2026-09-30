@@ -1,4 +1,4 @@
-import type { LineId, PathModel, Position, RouteModel, TrainState } from "./model.ts";
+import type { PathModel, Position, RouteModel, TrainState } from "./model.ts";
 import { interpolateRoute } from "./geometry.ts";
 import { eventTimes, passengerServiceAt, serviceDaySeconds, serviceSeconds, tripBounds, tripDestinationId, type DomainTimetable, type DomainTrip, type TimedEvent } from "./timetable.ts";
 
@@ -12,7 +12,7 @@ function positionBetween(route: RouteModel, fromId: string, toId: string, ratio:
 }
 function timeline(trip: DomainTrip, timetable: DomainTimetable): readonly { event: TimedEvent; locationId: string; kind: string; seconds: number }[] { return trip.events.flatMap((event) => eventTimes(event, timetable).map((time) => ({ event, locationId: event.locationId, kind: time.kind, seconds: time.seconds }))).sort((a, b) => a.seconds - b.seconds); }
 function withNotice(passengerService: boolean): Pick<TrainState, "passengerService" | "notice"> { return passengerService ? { passengerService } : { passengerService, notice: "本次列车不载客" }; }
-export function displayVehicleId(vehicleId: string, lineId: LineId): string { const match = /trainset-(\d+)$/u.exec(vehicleId); return match ? `${lineId === "MV-LB" ? "LB" : "LA"}-${match[1]}` : vehicleId; }
+export function displayVehicleId(vehicleId: string, lineId: "MV-LA" | "MV-LB"): string { const match = /trainset-(\d+)$/u.exec(vehicleId); return match ? `${lineId === "MV-LB" ? "LB" : "LA"}-${match[1]}` : vehicleId; }
 
 function activeTripState(trip: DomainTrip, now: number, timetable: DomainTimetable, route: RouteModel): Omit<TrainState, "vehicleId" | "circulationId"> {
   const items = timeline(trip, timetable); const passenger = passengerServiceAt(trip, now, timetable); const notice = withNotice(passenger); const journey = { direction: trip.direction, destinationId: tripDestinationId(trip, timetable) } as const;
@@ -20,7 +20,7 @@ function activeTripState(trip: DomainTrip, now: number, timetable: DomainTimetab
   const nextStop = (after: number, locationId?: string) => items.find((item) => {
     if (item.seconds <= after || item.locationId === locationId) return false;
     if (item.event.departure !== undefined) return true;
-    return item.locationId === destinationLocationId && (item.event.arrival !== undefined || item.event.boundaryTime !== undefined);
+    return item.locationId === destinationLocationId && (item.event.arrival !== undefined || item.event.boundaryTime !== undefined || item.event.pass !== undefined);
   });
   for (const event of trip.events) { if (event.arrival && event.departure && now >= serviceSeconds(event.arrival, timetable) && now < serviceSeconds(event.departure, timetable)) { const locationId = event.locationId; const departure = serviceSeconds(event.departure, timetable); const next = nextStop(departure, locationId); return { status: "dwelling", tripId: trip.tripId, locationId, position: positionAt(route, locationId), ...(next ? { nextStationId: next.event.locationId, etaSeconds: next.seconds - now } : {}), departureInSeconds: departure - now, ...journey, ...notice }; } }
   let fromIndex = -1;
@@ -30,7 +30,7 @@ function activeTripState(trip: DomainTrip, now: number, timetable: DomainTimetab
   const fallback = items.at(-1)!; return { status: "dwelling", tripId: trip.tripId, locationId: fallback.locationId, position: positionAt(route, fallback.locationId), ...journey, ...notice };
 }
 
-export function calculateTrainStates(now: number, timetable: DomainTimetable, route: RouteModel, lineId: LineId = "MV-LA", lineColor = lineId === "MV-LB" ? "#3B82F6" : "#E54B4B"): readonly TrainState[] {
+export function calculateTrainStates(now: number, timetable: DomainTimetable, route: RouteModel, lineId: "MV-LA" | "MV-LB" = "MV-LA", lineColor = lineId === "MV-LB" ? "#3B82F6" : "#E54B4B"): readonly TrainState[] {
   now = serviceDaySeconds(now, timetable);
   const byId = new Map(timetable.trips.map((trip) => [trip.tripId, trip]));
   return timetable.circulations.map((circulation) => {

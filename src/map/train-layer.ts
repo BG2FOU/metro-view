@@ -6,7 +6,7 @@ import { directionArrow, locationName } from "../ui/location-label.ts";
 const iconCache = new Map<string, string>();
 function iconFor(color: string): string {
   const cached = iconCache.get(color); if (cached) return cached;
-  const source = metroIconRaw.replaceAll("#E71419", color).replaceAll("#e71419", color).replaceAll("#F4B2B0", color === "#BA28B9" ? "#E7B4E7" : "#F4B2B0");
+  const source = metroIconRaw.replaceAll("#E54B4B", color).replaceAll("#e71419", color).replaceAll("#F4B2B0", color === "#3B82F6" ? "#E7B4E7" : "#F4B2B0");
   const url = `data:image/svg+xml,${encodeURIComponent(source)}`; iconCache.set(color, url); return url;
 }
 const label = (state: TrainState): string => `${state.vehicleId}${state.tripId ? ` · ${state.tripId}` : ""}`;
@@ -15,7 +15,7 @@ const createContent = (state: TrainState, stations: readonly Station[], onSelect
   button.type = "button";
   button.className = `train-marker ${state.status === "moving" ? "moving" : ""}${state.passengerService ? "" : " non-revenue"}`;
   button.setAttribute("aria-label", `查看列车 ${label(state)} 状态`);
-  const color = state.lineColor ?? "#E71419";
+  const color = state.lineColor ?? "#E54B4B";
   button.style.setProperty("--line-color", color);
   button.dataset.lineId = state.lineId ?? "MV-LA";
   button.innerHTML = `<img src="${iconFor(color)}" alt=""><span class="train-marker-label"><b></b><small></small></span>`;

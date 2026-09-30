@@ -13,6 +13,7 @@ export interface SegmentPart {
   readonly lineId?: LineId; readonly lineColor?: string;
 }
 export interface LineData { readonly lineId: LineId; readonly lineColor: string; readonly stations: readonly Station[]; readonly parts: readonly SegmentPart[]; readonly branchParts?: readonly SegmentPart[] }
+export type LineAData = LineData;
 export interface RoutePoint { readonly coordinates: Position; readonly chainageMeters: number }
 export interface PartRange { readonly partId: string; readonly structureType: StructureType; readonly startMeters: number; readonly endMeters: number }
 export interface PathModel { readonly points: readonly RoutePoint[]; readonly lengthMeters: number; readonly stationChainage: ReadonlyMap<string, number> }

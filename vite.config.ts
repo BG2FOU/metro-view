@@ -29,7 +29,7 @@ export default defineConfig(({ command, mode }) => {
       __METRO_VIEW_LOCAL_AMAP_KEY__: JSON.stringify(localKey),
       __METRO_VIEW_LOCAL_AMAP_SECURITY_JS_CODE__: JSON.stringify(localSecurityJsCode),
     },
-    build: { target: "es2022", sourcemap: true },
+    build: { target: "es2022", sourcemap: true, rollupOptions: { input: ["index.html", "pis-demo.html"] } },
     test: { environment: "node", include: ["tests/**/*.test.ts"] },
   };
 });

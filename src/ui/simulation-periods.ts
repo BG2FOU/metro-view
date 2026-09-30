@@ -1,5 +1,5 @@
 import { parseServiceDateTimeLocal } from "../services/service-time.ts";
-import type { ScheduleGeneration } from "../domain/schedule-selection.ts";
+import type { ScheduleGeneration, LineBScheduleId } from "../domain/schedule-selection.ts";
 
 export type SimulationPeriodKind = "non-service" | "transition" | "peak" | "flat" | "off-peak";
 export interface SimulationPeriod {
@@ -19,9 +19,9 @@ export function isServiceWeekend(dateKey: string): boolean {
   return weekday === "Sat" || weekday === "Sun";
 }
 
-export function servicePeriodsForDate(dateKey: string, generation: ScheduleGeneration = "legacy"): readonly SimulationPeriod[] {
+export function servicePeriodsForDate(dateKey: string, generation: ScheduleGeneration | LineBScheduleId = "legacy"): readonly SimulationPeriod[] {
   if (isServiceWeekend(dateKey)) {
-    const eveningLowPeakStart = generation === "next" ? seconds(21) : seconds(21, 30);
+    const eveningLowPeakStart = (generation === "next" || generation === "LB-WEEKDAY-NEXT" || generation === "LB-WEEKEND-NEXT") ? seconds(21) : seconds(21, 30);
     return [
       { start: 0, end: seconds(6), kind: "non-service", label: "非运营" },
       { start: seconds(6), end: seconds(7, 30), kind: "off-peak", label: "低峰" },

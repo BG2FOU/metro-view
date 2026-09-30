@@ -7,6 +7,9 @@ import { LB_WEEKDAY_NEXT_TIMETABLE } from "../src/data/lb-weekday-next-timetable
 import { LB_WEEKEND_BASE_TIMETABLE } from "../src/data/lb-weekend-base-timetable.ts";
 import { LB_WEEKEND_NEXT_TIMETABLE } from "../src/data/lb-weekend-next-timetable.ts";
 import { LA_NEXT_TIMETABLE } from "../src/data/la-next-timetable.ts";
+import { LA_EXPANDED_TIMETABLE } from "../src/data/la-expanded-timetable.ts";
+import { LA_SPECIAL_TIMETABLE } from "../src/data/la-special-timetable.ts";
+import { LB_SPECIAL_TIMETABLE } from "../src/data/lb-special-timetable.ts";
 
 interface SourceEvent {
   readonly locationId: string;
@@ -48,8 +51,11 @@ const datasets = [
   { data: LB_WEEKDAY_BASE_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/lb-weekday-base.json" },
   { data: LB_WEEKEND_BASE_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/lb-weekend-base.json" },
   { data: LA_NEXT_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/la-next.json" },
+  { data: LA_EXPANDED_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/la-expanded.json" },
+  { data: LA_SPECIAL_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/la-special.json" },
   { data: LB_WEEKDAY_NEXT_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/lb-weekday-next.json" },
   { data: LB_WEEKEND_NEXT_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/lb-weekend-next.json" },
+  { data: LB_SPECIAL_TIMETABLE as unknown as SourceTimetable, output: "src/data/runtime/lb-special.json" },
 ] as const;
 
 function invariant(condition: unknown, message: string): asserts condition {

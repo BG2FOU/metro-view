@@ -1,0 +1,131 @@
+{
+  "sampleData": true,
+  "width": 1000,
+  "height": 800,
+  "routes": [
+    {
+      "number": "A",
+      "points": [
+        {
+          "x": 130,
+          "y": 400
+        },
+        {
+          "x": 315,
+          "y": 400
+        },
+        {
+          "x": 500,
+          "y": 400
+        },
+        {
+          "x": 685,
+          "y": 400
+        },
+        {
+          "x": 870,
+          "y": 400
+        }
+      ],
+      "stations": [
+        {
+          "id": "a-terminal",
+          "zh": "晨曦站",
+          "en": "Dawn",
+          "x": 130,
+          "y": 400
+        },
+        {
+          "id": "a-museum-reserved",
+          "zh": "博览站（预留）",
+          "en": "Museum (Reserved)",
+          "x": 315,
+          "y": 400
+        },
+        {
+          "id": "a-central",
+          "zh": "中央站",
+          "en": "Central",
+          "x": 500,
+          "y": 400
+        },
+        {
+          "id": "a-riverside",
+          "zh": "滨河站",
+          "en": "Riverside",
+          "x": 685,
+          "y": 400
+        },
+        {
+          "id": "a-harbor",
+          "zh": "远航站",
+          "en": "Voyage",
+          "x": 870,
+          "y": 400
+        }
+      ]
+    },
+    {
+      "number": "B",
+      "points": [
+        {
+          "x": 500,
+          "y": 680
+        },
+        {
+          "x": 500,
+          "y": 540
+        },
+        {
+          "x": 500,
+          "y": 400
+        },
+        {
+          "x": 500,
+          "y": 260
+        },
+        {
+          "x": 500,
+          "y": 120
+        }
+      ],
+      "stations": [
+        {
+          "id": "b-west",
+          "zh": "新城西站",
+          "en": "New Town West",
+          "x": 500,
+          "y": 680
+        },
+        {
+          "id": "b-garden",
+          "zh": "青禾站",
+          "en": "Greenfield",
+          "x": 500,
+          "y": 540
+        },
+        {
+          "id": "b-central",
+          "zh": "星河站",
+          "en": "Galaxy",
+          "x": 500,
+          "y": 400
+        },
+        {
+          "id": "b-tech-park",
+          "zh": "科创园站",
+          "en": "Innovation Park",
+          "x": 500,
+          "y": 260
+        },
+        {
+          "id": "b-east",
+          "zh": "云谷东站",
+          "en": "Cloud Valley East",
+          "x": 500,
+          "y": 120
+        }
+      ]
+    }
+  ]
+}

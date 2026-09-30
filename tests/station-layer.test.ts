@@ -30,8 +30,8 @@ test("station markers use station.svg, a Chinese-only label and a click callback
   assert.match(String(options[1]?.content), /station-marker reserved/);
   assert.match(String(options[1]?.content), /博览/);
   assert.match(String(options[2]?.content), /station-marker depot/);
-  assert.equal(options[3]?.title, "晨曦");
-  assert.match(contents[3]!, />晨曦<\/b>/);
+  assert.equal(options[3]?.title, "晨曦站");
+  assert.match(contents[3]!, />晨曦站<\/b>/);
   layer.setNonOperatingStations(new Set(["a-central", "a-museum-reserved", "a-depot"]));
   assert.match(contents[0]!, /station-marker non-operating/);
   assert.doesNotMatch(contents[1]!, /non-operating/);

@@ -2,6 +2,7 @@ import stationIconUrl from "../assets/icons/station.svg";
 import type { LineData, Station } from "../domain/model.ts";
 import type { AMapApi, MapInstance, MarkerInstance, Overlay } from "../services/amap.ts";
 import { stationDisplayName } from "../ui/location-label.ts";
+import { isNonOperatingDisplayStation, isReservedDisplayStation } from "../ui/station-display.ts";
 
 const escape = (value: string): string => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
@@ -13,11 +14,14 @@ export interface StationLayer {
 }
 
 function markerContent(station: Station, data: LineData, nonOperatingStations: ReadonlySet<string>): string {
+  const reservedDisplay = isReservedDisplayStation(station);
+  const nonOperatingDisplay = isNonOperatingDisplayStation(station)
+    || (station.stationType === "operational" && nonOperatingStations.has(station.id));
   const classes = [
     "station-marker",
-    station.stationType === "reserved" ? "reserved" : "",
-    station.stationType === "depot" ? "depot" : "",
-    station.stationType === "operational" && nonOperatingStations.has(station.id) ? "non-operating" : "",
+    reservedDisplay ? "reserved" : "",
+    station.stationType === "depot" && !reservedDisplay && !nonOperatingDisplay ? "depot" : "",
+    nonOperatingDisplay ? "non-operating" : "",
   ].filter(Boolean).join(" ");
   return `<div class="${classes}" data-line-id="${data.lineId}" data-station-id="${escape(station.id)}" style="--line-color:${escape(data.lineColor)}"><img src="${escape(stationIconUrl)}" alt="" aria-hidden="true"><b>${escape(stationDisplayName(station))}</b></div>`;
 }

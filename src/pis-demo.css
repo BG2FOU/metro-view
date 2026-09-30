@@ -1,0 +1,83 @@
+@import "./pis-screen.css";
+:root { font-family: "Noto Sans SC", system-ui, sans-serif; color: #dce9f7; background: #071321; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+body:has(.demo-dialog[open]) { overflow: hidden; }
+button { font: inherit; }
+.demo-shell { min-height: 100dvh; padding: 0 clamp(16px, 4vw, 64px) 48px; background: radial-gradient(circle at 80% 8%, #224562 0, transparent 30%), linear-gradient(155deg, #071321, #0d2238 62%, #091726); }
+.demo-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; max-width: 1380px; margin: auto; padding: 25px 0; border-bottom: 1px solid #ffffff25; }
+.demo-brand { display: flex; align-items: center; gap: 12px; }
+.demo-brand strong, .demo-brand small { display: block; }
+.demo-brand strong { font-size: 17px; letter-spacing: .08em; }
+.demo-brand small { color: #91aec8; font-size: 11px; letter-spacing: .04em; }
+.demo-header a { color: #dce9f7; text-decoration: none; border: 1px solid #6182a0; border-radius: 999px; padding: 9px 16px; }
+.demo-header a:hover, .demo-header a:focus-visible { border-color: #add5f7; background: #ffffff16; }
+.demo-intro { max-width: 1380px; margin: clamp(30px, 5vw, 78px) auto 28px; }
+.demo-eyebrow { color: #7dd5e9; font-size: 12px; font-weight: 800; letter-spacing: .22em; }
+.demo-intro h1 { margin: 10px 0; color: white; font-size: clamp(34px, 5vw, 68px); line-height: 1.15; letter-spacing: -.04em; }
+.demo-intro p { max-width: 720px; color: #a6bfd3; line-height: 1.8; }
+.demo-stage { position: relative; isolation: isolate; display: grid; place-items: center; min-height: min(57vh, 500px); max-width: 1380px; margin: auto; overflow: hidden; border: 1px solid #567da14d; border-radius: 28px; background: radial-gradient(circle at 50% 45%, #224365, #091b2e 62%); }
+.demo-stage::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .4; background-image: linear-gradient(#7896ae24 1px, transparent 1px), linear-gradient(90deg, #7896ae24 1px, transparent 1px); background-size: 40px 40px; }
+.demo-map-line { position: absolute; z-index: -1; display: flex; justify-content: space-between; width: 100%; height: 18px; padding: 0 9%; transform: rotate(-15deg); background: linear-gradient(90deg, #e71419, #ba28b9); box-shadow: 0 0 34px #ba28b988; }
+.demo-map-line span { width: 30px; height: 30px; margin-top: -6px; border: 6px solid #f6fcff; border-radius: 50%; background: #233f5a; box-shadow: 0 0 12px #fff9; }
+.demo-stage-card { max-width: min(540px, calc(100% - 32px)); padding: clamp(22px, 4vw, 40px); border: 1px solid #b1d4ed75; border-radius: 20px; background: #0d2137ed; box-shadow: 0 22px 70px #0009; }
+.demo-stage-card > span { color: #80d7eb; font-family: "Barlow Condensed", sans-serif; font-weight: 800; letter-spacing: .18em; }
+.demo-stage-card h2 { margin: 10px 0 4px; color: #fff; font-size: clamp(20px, 3vw, 30px); }
+.demo-stage-card p { color: #9ab9d1; font-size: 13px; }
+.demo-stage-card button { display: flex; justify-content: space-between; gap: 34px; align-items: center; width: 100%; margin-top: 24px; padding: 13px 18px; border: 0; border-radius: 10px; background: #e07127; color: #fff; font-weight: 800; cursor: pointer; }
+.demo-stage-card button:hover, .demo-stage-card button:focus-visible { background: #f38735; outline: 3px solid #ffb67a66; }
+.demo-dialog { width: min(1210px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 24px); margin: auto; padding: 0; overflow: hidden; border: 1px solid #50708e; border-radius: 18px; background: #0b1829; color: #eaf5ff; box-shadow: 0 30px 100px #000b; }
+.demo-dialog::backdrop { background: #020913c9; backdrop-filter: blur(9px); }
+.demo-dialog-shell { display: flex; flex-direction: column; max-height: calc(100dvh - 24px); }
+.demo-review-bar { display: flex; align-items: center; gap: 12px; flex: 0 0 auto; min-height: 64px; padding: 10px 14px 10px 20px; border-bottom: 1px solid #ffffff22; background: #0b1829; }
+.demo-review-title { flex: 0 0 auto; margin-right: auto; }
+.demo-review-title b, .demo-review-title small { display: block; }
+.demo-review-title b { font-size: 14px; }
+.demo-review-title small { color: #87a1b9; font-size: 10px; }
+.demo-switches { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.demo-mode-label { padding: 6px 9px; border: 1px solid #547593; border-radius: 7px; color: #c5def0; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.demo-switches button { padding: 7px 10px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #9fb7ca; font-size: 12px; font-weight: 700; cursor: pointer; }
+.demo-switches button[aria-pressed="true"] { border-color: #5a8bb4; background: #214262; color: white; }
+.demo-switches button:hover, .demo-switches button:focus-visible { color: white; outline: 2px solid #82c9e544; }
+.demo-divider { width: 1px; height: 22px; margin: 0 5px; background: #ffffff30; }
+.demo-close { flex: 0 0 auto; display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid #607e9d; border-radius: 50%; background: #18334e; color: #fff; font-size: 25px; line-height: 1; cursor: pointer; }
+.demo-close:hover, .demo-close:focus-visible { background: #2b567a; outline: 2px solid #9bd9ff; }
+.demo-screen-host { min-height: 0; padding: clamp(8px, 1.8vw, 22px); overflow: auto; }
+
+@media (max-width: 850px) {
+  .demo-review-bar { flex-wrap: wrap; }
+  .demo-review-title { flex: 1 1 calc(100% - 52px); }
+  .demo-close { order: 1; }
+  .demo-switches { order: 2; width: 100%; }
+}
+
+@media (max-width: 620px) {
+  .demo-dialog { width: calc(100vw - 12px); max-height: calc(100dvh - 12px); border-radius: 12px; }
+  .demo-dialog-shell { max-height: calc(100dvh - 12px); }
+  .demo-screen-host { padding: 7px; }
+  .demo-switches { flex-wrap: wrap; gap: 5px; }
+  .demo-mode-label { flex: 1 0 100%; }
+  .demo-divider { flex: 0 0 1px; }
+  .demo-switches button { flex: 0 0 auto; }
+}
+
+/* Compact PIS layout used by both review modes. */
+@media (max-width: 620px) {
+  .demo-screen-host { overflow: hidden; }
+}
+
+@media (max-width: 620px) and (max-height: 620px) {
+  .demo-review-bar { gap: 4px; min-height: 0; padding: 5px 8px; }
+  .demo-review-title b { font-size: 12px; }
+  .demo-review-title small { font-size: 8px; }
+  .demo-close { width: 28px; height: 28px; font-size: 20px; }
+  .demo-switches { gap: 2px; }
+  .demo-mode-label { padding: 2px 5px; font-size: 9px; }
+  .demo-divider { display: none; }
+  .demo-switches button { padding: 3px 6px; font-size: 10px; }
+}
+
+/* Photo reference: wordmark beside a compact two-line route badge. */
+
+.demo-train-options { flex: 0 0 auto; padding: 8px 14px; border-bottom: 1px solid #ffffff22; }
+.demo-train-options[hidden] { display: none; }
